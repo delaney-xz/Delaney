@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security By Delaney Team</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/otpauth/9.1.4/otpauth.umd.min.js"></script>
+  <style>
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans select-none">
+
+  <!-- Top Hero Header -->
+  <header class="pt-6 pb-4 text-center">
+    <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent animate-pulse">
+      Welcome to us the Delaney Team
+    </h1>
+    
+    <!-- Top Action Buttons -->
+    <div class="mt-5 flex justify-center gap-3">
+      <button class="px-6 py-2 rounded-lg font-semibold text-sm bg-blue-600 text-white shadow-lg shadow-blue-500/30">
+        <i class="fa-solid fa-toolbox mr-2"></i>Tools
+      </button>
+      
+      <!-- Direct External Link to Gmail Live Checker -->
+      <a href="https://www.gmailchecklive.com/" target="_blank" rel="noopener noreferrer"
+         class="px-6 py-2 rounded-lg font-semibold text-sm bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-red-500/50 hover:bg-slate-800 transition flex items-center gap-2">
+        <i class="fa-solid fa-envelope-circle-check text-red-400"></i>
+        <span>Gmail Live Checker</span>
+        <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Tools Workspace (3 Slender Columns) -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 pb-6 flex flex-col">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+      
+      <!-- Column 1: 2FA Authenticator -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col h-[calc(100vh-175px)] min-h-[580px]">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 text-sm">
+              <i class="fa-solid fa-shield-halved"></i>
+            </span>
+            <h2 class="font-bold text-sm tracking-wider uppercase text-slate-200">2FA Authenticator</h2>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-slate-400 font-medium">2FA Key</span>
+              <button onclick="clearTwoFAKey()" class="text-slate-500 hover:text-red-400 text-xs transition" title="Clear Key">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+            <input type="text" id="twoFAKeyInput" placeholder="Paste your 2FA secret..." oninput="handleTwoFAKeyChange()"
+              class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono tracking-wider">
+          </div>
+
+          <!-- Centered Compact Live Code Box -->
+          <div class="flex justify-center pt-1">
+            <div class="inline-flex items-center gap-3 bg-slate-950 border border-cyan-500/30 rounded-lg px-4 py-2 shadow-inner">
+              <div class="relative flex items-center justify-center w-7 h-7">
+                <svg class="w-7 h-7 transform -rotate-90">
+                  <circle cx="14" cy="14" r="11" stroke="#1e293b" stroke-width="2.5" fill="transparent" />
+                  <circle id="twoFATimerCircle" cx="14" cy="14" r="11" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" fill="transparent" stroke-dasharray="69.11" stroke-dashoffset="0" />
+                </svg>
+                <span id="twoFATimerCount" class="absolute text-[10px] font-bold text-cyan-400">30</span>
+              </div>
+
+              <div id="twoFACodeDisplay" class="font-mono text-xl font-extrabold text-cyan-400 tracking-widest min-w-[90px] text-center">
+                ------
+              </div>
+
+              <button onclick="copyTwoFACode()" class="text-slate-400 hover:text-cyan-300 transition text-sm p-1" title="Copy Code">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- History: Top-to-Bottom Borderless Rows -->
+        <div class="flex-1 mt-4 flex flex-col min-h-0">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex justify-between items-center">
+            <span>Key History</span>
+            <button onclick="clearTwoFAHistory()" class="text-slate-500 hover:text-red-400 lowercase text-[10px]">clear</button>
+          </div>
+          <div id="twoFAHistoryList" class="flex-1 overflow-y-auto custom-scroll space-y-1 pr-1 text-xs">
+            <!-- Dynamic items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 2: Password Generator -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col h-[calc(100vh-175px)] min-h-[580px]">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm">
+              <i class="fa-solid fa-key"></i>
+            </span>
+            <h2 class="font-bold text-sm tracking-wider uppercase text-slate-200">Password Generator</h2>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 flex items-center justify-between">
+            <div id="passwordDisplay" class="font-mono text-sm text-emerald-400 font-semibold truncate select-all pr-2">
+              Generating...
+            </div>
+            <button onclick="copyGeneratedPassword()" class="text-slate-400 hover:text-emerald-300 transition text-sm p-1" title="Copy and regenerate">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+
+          <!-- Connected Reload & 2-Digit Length Input Box -->
+          <div class="flex justify-center pt-1">
+            <div class="inline-flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5">
+              <button onclick="generatePassword()" class="px-2.5 py-1 text-slate-400 hover:text-emerald-400 transition text-xs" title="Regenerate">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
+              <div class="h-4 w-[1px] bg-slate-800"></div>
+              <input type="number" id="passLengthInput" min="6" max="64" value="16" onchange="generatePassword()"
+                class="w-11 bg-transparent text-center font-mono text-xs text-slate-200 focus:outline-none py-1">
+            </div>
+          </div>
+        </div>
+
+        <!-- History: Top-to-Bottom Borderless Rows -->
+        <div class="flex-1 mt-4 flex flex-col min-h-0">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex justify-between items-center">
+            <span>Password History</span>
+            <button onclick="clearPassHistory()" class="text-slate-500 hover:text-red-400 lowercase text-[10px]">clear</button>
+          </div>
+          <div id="passHistoryList" class="flex-1 overflow-y-auto custom-scroll space-y-1 pr-1 text-xs">
+            <!-- Dynamic items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Column 3: Email Generator -->
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 flex flex-col h-[calc(100vh-175px)] min-h-[580px]">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 text-sm">
+              <i class="fa-solid fa-at"></i>
+            </span>
+            <h2 class="font-bold text-sm tracking-wider uppercase text-slate-200">Email Generator</h2>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Country</label>
+              <select id="emailCountry" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
+                <option value="usa">USA</option>
+                <option value="uk">UK</option>
+                <option value="germany">Germany</option>
+                <option value="france">France</option>
+                <option value="bangladesh">Bangladesh</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-1">Domain</label>
+              <select id="emailDomain" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none">
+                <option value="outlook.com">@outlook.com</option>
+                <option value="yahoo.com">@yahoo.com</option>
+                <option value="gmail.com">@gmail.com</option>
+                <option value="hotmail.com">@hotmail.com</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="generateEmails()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 transition py-1.5 rounded-lg text-xs font-semibold text-white">
+              Generate Emails
+            </button>
+            <input type="number" id="emailCountInput" min="1" max="50" value="8"
+              class="w-12 bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-center text-xs text-slate-200 focus:outline-none font-mono">
+          </div>
+        </div>
+
+        <!-- Generated Emails List (No History) -->
+        <div class="flex-1 mt-4 flex flex-col min-h-0">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+            Generated Emails
+          </div>
+          <div id="generatedEmailsList" class="flex-1 overflow-y-auto custom-scroll space-y-1.5 pr-1 text-xs">
+            <div class="text-slate-600 text-center py-8 text-xs italic">No emails generated yet</div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // --- 2FA AUTHENTICATOR ---
+    let currentTOTP = null;
+    let twoFAInterval = null;
+
+    function handleTwoFAKeyChange() {
+      const raw = document.getElementById('twoFAKeyInput').value.trim().replace(/\s+/g, '').toUpperCase();
+      if (!raw) {
+        clearInterval(twoFAInterval);
+        currentTOTP = null;
+        document.getElementById('twoFACodeDisplay').textContent = "------";
+        return;
+      }
+
+      try {
+        currentTOTP = new OTPAuth.TOTP({
+          issuer: 'Delaney',
+          label: 'User',
+          algorithm: 'SHA1',
+          digits: 6,
+          period: 30,
+          secret: OTPAuth.Secret.fromBase32(raw)
+        });
+        updateTwoFACode();
+        clearInterval(twoFAInterval);
+        twoFAInterval = setInterval(updateTwoFACode, 1000);
+      } catch (err) {
+        document.getElementById('twoFACodeDisplay').textContent = "INVALID";
+      }
+    }
+
+    function updateTwoFACode() {
+      if (!currentTOTP) return;
+      const code = currentTOTP.generate();
+      document.getElementById('twoFACodeDisplay').textContent = code;
+
+      const epoch = Math.floor(Date.now() / 1000);
+      const remaining = 30 - (epoch % 30);
+      document.getElementById('twoFATimerCount').textContent = remaining;
+
+      const circumference = 69.11;
+      const offset = circumference - (remaining / 30) * circumference;
+      document.getElementById('twoFATimerCircle').style.strokeDashoffset = offset;
+    }
+
+    function copyTwoFACode() {
+      const code = document.getElementById('twoFACodeDisplay').textContent;
+      const key = document.getElementById('twoFAKeyInput').value.trim();
+      if (!code || code === '------' || code === 'INVALID') return;
+
+      navigator.clipboard.writeText(code);
+      if (key) {
+        saveToHistory('2fa_history', key);
+        renderTwoFAHistory();
+      }
+    }
+
+    function clearTwoFAKey() {
+      document.getElementById('twoFAKeyInput').value = '';
+      handleTwoFAKeyChange();
+    }
+
+    // --- PASSWORD GENERATOR ---
+    function generatePassword() {
+      const len = parseInt(document.getElementById('passLengthInput').value) || 16;
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~|}{[]:;?><=";
+      let pass = "";
+      for (let i = 0; i < len; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('passwordDisplay').textContent = pass;
+    }
+
+    function copyGeneratedPassword() {
+      const pass = document.getElementById('passwordDisplay').textContent;
+      if (!pass || pass.includes('Generating')) return;
+
+      navigator.clipboard.writeText(pass);
+      saveToHistory('pass_history', pass);
+      renderPassHistory();
+      generatePassword();
+    }
+
+    // --- EMAIL GENERATOR ---
+    const names = {
+      usa: ["james", "john", "robert", "michael", "william", "david", "richard", "joseph", "thomas", "charles"],
+      uk: ["oliver", "george", "harry", "jack", "jacob", "noah", "charlie", "muhammad", "thomas", "oscar"],
+      germany: ["lukas", "leon", "finn", "paul", "jonas", "felix", "noah", "elias", "tim", "max"],
+      france: ["gabriel", "raphael", "leo", "louis", "lucas", "adam", "arthur", "jules", "hugo", "mael"],
+      bangladesh: ["rahim", "karim", "sakib", "tanvir", "hasan", "arif", "rafiq", "sohel", "shakil", "mehedi"]
+    };
+
+    function generateEmails() {
+      const country = document.getElementById('emailCountry').value;
+      const domain = document.getElementById('emailDomain').value;
+      const count = parseInt(document.getElementById('emailCountInput').value) || 8;
+      const listContainer = document.getElementById('generatedEmailsList');
+      listContainer.innerHTML = '';
+
+      const namePool = names[country] || names.usa;
+      for (let i = 0; i < count; i++) {
+        const randName = namePool[Math.floor(Math.random() * namePool.length)];
+        const randNum = Math.floor(Math.random() * 8999) + 1000;
+        const email = `${randName}${randNum}@${domain}`;
+
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between py-1 px-2 rounded hover:bg-slate-800/40 cursor-pointer transition text-slate-300";
+        row.innerHTML = `
+          <span class="truncate font-mono tracking-wide text-xs">${email}</span>
+          <span class="text-slate-500 hover:text-slate-200 text-xs ml-2"><i class="fa-regular fa-copy"></i></span>
+        `;
+        row.onclick = () => {
+          navigator.clipboard.writeText(email);
+          row.querySelector('span').classList.add('line-through', 'text-slate-600');
+          if (!row.querySelector('.used-badge')) {
+            const badge = document.createElement('span');
+            badge.className = "used-badge text-[9px] bg-red-950/60 text-red-400 px-1 rounded ml-1 font-bold";
+            badge.textContent = "USED";
+            row.appendChild(badge);
+          }
+        };
+        listContainer.appendChild(row);
+      }
+    }
+
+    // --- STORAGE & HISTORY (3 DAYS EXPIRY) ---
+    function saveToHistory(storageKey, value) {
+      let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const now = Date.now();
+      items = items.filter(x => x.val !== value && (now - x.time) < 259200000);
+      items.unshift({ val: value, time: now });
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    }
+
+    function loadHistory(storageKey) {
+      let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const now = Date.now();
+      items = items.filter(x => (now - x.time) < 259200000);
+      localStorage.setItem(storageKey, JSON.stringify(items));
+      return items;
+    }
+
+    function renderTwoFAHistory() {
+      const list = document.getElementById('twoFAHistoryList');
+      const items = loadHistory('2fa_history');
+      list.innerHTML = items.length ? '' : '<div class="text-slate-600 italic py-2">No keys recorded</div>';
+
+      items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between py-1 group border-b border-slate-900/60";
+        div.innerHTML = `
+          <span class="font-mono text-slate-300 hover:text-cyan-400 cursor-pointer truncate max-w-[170px]" title="Click to load">${item.val}</span>
+          <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100">
+            <button onclick="event.stopPropagation(); navigator.clipboard.writeText('${item.val}')" class="text-slate-400 hover:text-cyan-300 text-[11px]"><i class="fa-regular fa-copy"></i></button>
+            <button onclick="deleteHistoryItem('2fa_history', ${idx})" class="text-slate-500 hover:text-red-400 text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        `;
+        div.querySelector('span').onclick = () => {
+          document.getElementById('twoFAKeyInput').value = item.val;
+          handleTwoFAKeyChange();
+        };
+        list.appendChild(div);
+      });
+    }
+
+    function renderPassHistory() {
+      const list = document.getElementById('passHistoryList');
+      const items = loadHistory('pass_history');
+      list.innerHTML = items.length ? '' : '<div class="text-slate-600 italic py-2">No passwords recorded</div>';
+
+      items.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between py-1 group border-b border-slate-900/60";
+        div.innerHTML = `
+          <span class="font-mono text-slate-300 truncate max-w-[170px]">${item.val}</span>
+          <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100">
+            <button onclick="navigator.clipboard.writeText('${item.val}')" class="text-slate-400 hover:text-emerald-300 text-[11px]"><i class="fa-regular fa-copy"></i></button>
+            <button onclick="deleteHistoryItem('pass_history', ${idx})" class="text-slate-500 hover:text-red-400 text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteHistoryItem(storageKey, idx) {
+      let items = loadHistory(storageKey);
+      items.splice(idx, 1);
+      localStorage.setItem(storageKey, JSON.stringify(items));
+      if (storageKey === '2fa_history') renderTwoFAHistory();
+      else renderPassHistory();
+    }
+
+    function clearTwoFAHistory() {
+      localStorage.removeItem('2fa_history');
+      renderTwoFAHistory();
+    }
+
+    function clearPassHistory() {
+      localStorage.removeItem('pass_history');
+      renderPassHistory();
+    }
+
+    // Initialize defaults
+    generatePassword();
+    renderTwoFAHistory();
+    renderPassHistory();
+  </script>
+</body>
+</html>
