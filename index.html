@@ -7,6 +7,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/otpauth/9.1.4/otpauth.umd.min.js"></script>
+  
+  <!-- Firebase SDK for 100% Realtime Transparent User Tracking -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { 
@@ -23,7 +28,6 @@
       background: #334155;
       border-radius: 4px;
     }
-    /* সবসময় স্ক্রিনের ভেতর ৩টি কলাম পাশাপাশি সমানুপাতে রাখার রুল */
     .always-three-cols {
       display: grid !important;
       grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -37,6 +41,32 @@
     <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent">
       Welcome to us the Delaney Team
     </h1>
+    
+    <!-- Transparent Metrics Bar (Live, Total Users, Total Operations) -->
+    <div class="mt-2.5 flex flex-wrap justify-center items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-semibold">
+      
+      <!-- 1. Live Online -->
+      <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300 shadow-inner">
+        <span class="relative flex h-2 w-2 mr-0.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        Live Online: <span id="liveUsersCount" class="text-emerald-400 font-bold ml-0.5">1</span>
+      </div>
+
+      <!-- 2. Total Connected Users (Unique) -->
+      <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300 shadow-inner" title="Total unique users engaged with this dashboard">
+        <i class="fa-solid fa-users text-cyan-400"></i>
+        Total Users: <span id="totalUsersCount" class="text-cyan-400 font-bold ml-0.5">1</span>
+      </div>
+
+      <!-- 3. Total Tools Actions Performed -->
+      <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300 shadow-inner" title="Total security operations generated">
+        <i class="fa-solid fa-bolt text-amber-400"></i>
+        Total Used: <span id="totalActionsCount" class="text-amber-400 font-bold ml-0.5">0</span>
+      </div>
+
+    </div>
     
     <!-- Navigation Buttons -->
     <div class="mt-3 flex justify-center gap-2">
@@ -58,7 +88,7 @@
     <div class="always-three-cols gap-2 sm:gap-3 flex-1 min-h-0">
       
       <!-- Column 1: 2FA Authenticator -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-140px)] min-h-0 overflow-hidden">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-175px)] min-h-0 overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 shrink-0">
           <div class="flex items-center gap-1.5 truncate">
             <span class="p-1 rounded bg-cyan-500/10 text-cyan-400 text-xs">
@@ -113,7 +143,7 @@
       </section>
 
       <!-- Column 2: Password Generator -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-140px)] min-h-0 overflow-hidden">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-175px)] min-h-0 overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 shrink-0">
           <div class="flex items-center gap-1.5 truncate">
             <span class="p-1 rounded bg-emerald-500/10 text-emerald-400 text-xs">
@@ -157,7 +187,7 @@
       </section>
 
       <!-- Column 3: Email Generator -->
-      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-140px)] min-h-0 overflow-hidden">
+      <section class="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 sm:p-3 flex flex-col h-[calc(100vh-175px)] min-h-0 overflow-hidden">
         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2 shrink-0">
           <div class="flex items-center gap-1.5 truncate">
             <span class="p-1 rounded bg-indigo-500/10 text-indigo-400 text-xs">
@@ -214,7 +244,121 @@
   </main>
 
   <script>
-    // --- 2FA AUTHENTICATOR LOGIC ---
+    // ============================================================
+    // TRANSPARENT USER METRICS & PRESENCE LOGIC
+    // ============================================================
+    let db = null;
+    let visitorId = localStorage.getItem('delaney_unique_user_id');
+
+    if (!visitorId) {
+      // Create a persistent unique ID for each authentic visitor device
+      visitorId = 'usr_' + Math.random().toString(36).substr(2, 8) + '_' + Date.now();
+      localStorage.setItem('delaney_unique_user_id', visitorId);
+    }
+
+    // Initialize transparent tracking
+    function initTransparentAnalytics() {
+      // 1. Local fallback counters
+      let localTotalUsers = parseInt(localStorage.getItem('delaney_metric_total_users') || '1');
+      let localActions = parseInt(localStorage.getItem('delaney_metric_total_actions') || '0');
+      
+      document.getElementById('totalUsersCount').innerText = localTotalUsers.toLocaleString();
+      document.getElementById('totalActionsCount').innerText = localActions.toLocaleString();
+
+      // 2. Real-time Firebase Presence (with seamless open endpoint)
+      try {
+        const firebaseConfig = {
+          databaseURL: "https://delaney-security-suite-default-rtdb.firebaseio.com"
+        };
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.database();
+
+        const connectedRef = db.ref('.info/connected');
+        const myPresenceRef = db.ref('online_sessions/' + visitorId);
+        const allPresenceRef = db.ref('online_sessions');
+        const registeredUsersRef = db.ref('registered_users/' + visitorId);
+        const allUsersRef = db.ref('registered_users');
+        const actionsRef = db.ref('analytics/total_operations');
+
+        // Detect connection state
+        connectedRef.on('value', (snap) => {
+          if (snap.val() === true) {
+            // Remove when tab/browser is closed
+            myPresenceRef.onDisconnect().remove();
+            
+            // Set active presence
+            myPresenceRef.set({
+              online: true,
+              ts: Date.now()
+            });
+
+            // Register this user permanently in the global database
+            registeredUsersRef.set({
+              registered_at: Date.now(),
+              device: navigator.userAgent.substring(0, 40)
+            });
+          }
+        });
+
+        // Listen for live online users count
+        allPresenceRef.on('value', (snap) => {
+          const count = snap.numChildren();
+          document.getElementById('liveUsersCount').innerText = count > 0 ? count : 1;
+        });
+
+        // Listen for total registered unique users count
+        allUsersRef.on('value', (snap) => {
+          const total = snap.numChildren();
+          if (total > 0) {
+            document.getElementById('totalUsersCount').innerText = total.toLocaleString();
+            localStorage.setItem('delaney_metric_total_users', total);
+          }
+        });
+
+        // Listen for total system actions
+        actionsRef.on('value', (snap) => {
+          const val = snap.val();
+          if (val !== null) {
+            document.getElementById('totalActionsCount').innerText = parseInt(val).toLocaleString();
+            localStorage.setItem('delaney_metric_total_actions', val);
+          }
+        });
+
+      } catch (err) {
+        // Fallback transparent counter via public API if Firebase is blocked
+        fetch('https://api.counterapi.dev/v1/delaney_team/global_registered_users/up')
+          .then(res => res.json())
+          .then(d => {
+            document.getElementById('totalUsersCount').innerText = d.count.toLocaleString();
+          }).catch(()=>{});
+      }
+    }
+
+    // Function to increment transparent global activity counter
+    function recordActionTriggered() {
+      // Local increment
+      let localActions = parseInt(localStorage.getItem('delaney_metric_total_actions') || '0') + 1;
+      localStorage.setItem('delaney_metric_total_actions', localActions);
+      document.getElementById('totalActionsCount').innerText = localActions.toLocaleString();
+
+      // Cloud database increment
+      if (db) {
+        try {
+          db.ref('analytics/total_operations').transaction((current) => {
+            return (current || 0) + 1;
+          });
+        } catch (e) {}
+      }
+    }
+
+    initTransparentAnalytics();
+
+
+    // ============================================================
+    // 2FA AUTHENTICATOR LOGIC
+    // ============================================================
     let currentTOTP = null;
     let twoFAInterval = null;
 
@@ -264,6 +408,8 @@
       if (!code || code === '------' || code === 'INVALID') return;
 
       navigator.clipboard.writeText(code);
+      recordActionTriggered(); // Record activity
+
       if (key) {
         saveToHistory('2fa_history', key);
         renderTwoFAHistory();
@@ -275,7 +421,9 @@
       handleTwoFAKeyChange();
     }
 
-    // --- PASSWORD GENERATOR LOGIC ---
+    // ============================================================
+    // PASSWORD GENERATOR LOGIC
+    // ============================================================
     function generatePassword() {
       const len = parseInt(document.getElementById('passLengthInput').value) || 16;
       const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~|}{[]:;?><=";
@@ -291,12 +439,16 @@
       if (!pass || pass.includes('Generating')) return;
 
       navigator.clipboard.writeText(pass);
+      recordActionTriggered(); // Record activity
+
       saveToHistory('pass_history', pass);
       renderPassHistory();
       generatePassword();
     }
 
-    // --- EMAIL GENERATOR LOGIC ---
+    // ============================================================
+    // EMAIL GENERATOR LOGIC
+    // ============================================================
     const names = {
       usa: ["james", "john", "robert", "michael", "william", "david", "richard", "joseph", "thomas", "charles"],
       uk: ["oliver", "george", "harry", "jack", "jacob", "noah", "charlie", "muhammad", "thomas", "oscar"],
@@ -326,6 +478,8 @@
         `;
         row.onclick = () => {
           navigator.clipboard.writeText(email);
+          recordActionTriggered(); // Record activity
+
           row.querySelector('span').classList.add('line-through', 'text-slate-600');
           if (!row.querySelector('.used-badge')) {
             const badge = document.createElement('span');
@@ -338,7 +492,9 @@
       }
     }
 
-    // --- LOCALSTORAGE (3 DAYS EXPIRY) ---
+    // ============================================================
+    // LOCALSTORAGE (3 DAYS RETENTION)
+    // ============================================================
     function saveToHistory(storageKey, value) {
       let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
       const now = Date.now();
